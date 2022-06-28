@@ -5,8 +5,13 @@
 package it.polito.tdp.itunes;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.itunes.db.Adiacenze;
+import it.polito.tdp.itunes.model.Genre;
 import it.polito.tdp.itunes.model.Model;
+import it.polito.tdp.itunes.model.Track;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -34,10 +39,10 @@ public class FXMLController {
     private Button btnMassimo; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbCanzone"
-    private ComboBox<?> cmbCanzone; // Value injected by FXMLLoader
+    private ComboBox<Track> cmbCanzone; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbGenere"
-    private ComboBox<?> cmbGenere; // Value injected by FXMLLoader
+    private ComboBox<Genre> cmbGenere; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtMemoria"
     private TextField txtMemoria; // Value injected by FXMLLoader
@@ -47,18 +52,53 @@ public class FXMLController {
 
     @FXML
     void btnCreaLista(ActionEvent event) {
+    	Track canzonePreferita=this.cmbCanzone.getValue();
+    	if(canzonePreferita==null) {
+    		this.txtResult.setText("Selezionare canzone!");
+    		return;
+    	}
+    	
+    	try {
+    		Integer memoria=Integer.parseInt(this.txtMemoria.getText());
+    		//ricorsione
+    		List<Track> lista=this.model.creaLista(canzonePreferita, memoria);
+    		for(Track c:lista)
+        		this.txtResult.appendText("\n"+c.getName());
 
+    	}catch(NumberFormatException e) {
+    		this.txtResult.setText("Inserisci memoria");
+    		return;
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	Genre g=this.cmbGenere.getValue();
+    	if(g==null) {
+    		this.txtResult.setText("Inserire genere!");
+    		return;
+    	}
+    	String msg=this.model.creaGrafo(g);
+		this.txtResult.setText(msg);
+		this.btnCreaLista.setDisable(false);
+		this.btnMassimo.setDisable(false);
+		this.cmbCanzone.getItems().addAll(this.model.getAllSong());
     }
 
     @FXML
     void doDeltaMassimo(ActionEvent event) {
+    	Genre g=this.cmbGenere.getValue();
+    	if(g==null) {
+    		this.txtResult.setText("Inserire genere!");
+    		return;
+    	}
+    	List<Adiacenze> res=this.model.getDeltaMassimo(g);
+    	for(Adiacenze a: res) {
+    		String msg="\n"+a.getT1().getName()+"***"+a.getT2().getName()+" => "+a.getDelta();
+    		this.txtResult.appendText(msg);
+    	}
     	
-    	
+
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -75,6 +115,9 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.cmbGenere.getItems().addAll(this.model.getAllGenre());
+    	this.btnMassimo.setDisable(true);
+    	this.btnCreaLista.setDisable(true);
     }
 
 }

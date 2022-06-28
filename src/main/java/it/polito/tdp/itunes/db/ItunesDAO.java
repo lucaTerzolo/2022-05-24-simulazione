@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Artist;
 import it.polito.tdp.itunes.model.Genre;
@@ -100,7 +102,7 @@ public class ItunesDAO {
 	}
 	
 	public List<Genre> getAllGenres(){
-		final String sql = "SELECT * FROM Genre";
+		final String sql = "SELECT * FROM Genre ORDER BY Name";
 		List<Genre> result = new LinkedList<>();
 		
 		try {
@@ -139,6 +141,53 @@ public class ItunesDAO {
 		return result;
 	}
 
+	public List<Track> getTrackByGenre(Genre g){
+		String sql="SELECT t.* FROM track t WHERE t.GenreId=? ";
+		
+		List<Track> result = new ArrayList<Track>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, g.getGenreId());
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				result.add(new Track(res.getInt("TrackId"), res.getString("Name"), 
+						res.getString("Composer"), res.getInt("Milliseconds"), 
+						res.getInt("Bytes"),res.getDouble("UnitPrice")));
+			
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
 	
-	
+	public List<Adiacenze> getAdiacenze(Genre g, Map<Integer,Track> idMap){
+		String sql="SELECT t1.TrackId as t1, t2.TrackId as t2, ABS(t1.Milliseconds-t2.Milliseconds) as delta "
+				+ "FROM track t1, track t2 "
+				+ "WHERE t1.MediaTypeId=t2.MediaTypeId and t1.TrackId>t2.TrackId and "
+				+ "t1.GenreId=? and t2.GenreId=t1.GenreId ";
+				
+		List<Adiacenze> result = new ArrayList<>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, g.getGenreId());
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				result.add(new Adiacenze(idMap.get(res.getInt("t1")),idMap.get(res.getInt("t2")),res.getInt("delta")));
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
 }
