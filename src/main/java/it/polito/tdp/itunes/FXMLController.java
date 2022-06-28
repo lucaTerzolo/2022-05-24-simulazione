@@ -62,6 +62,7 @@ public class FXMLController {
     		Integer memoria=Integer.parseInt(this.txtMemoria.getText());
     		//ricorsione
     		List<Track> lista=this.model.creaLista(canzonePreferita, memoria);
+    		this.txtResult.setText("Lista canzoni:");
     		for(Track c:lista)
         		this.txtResult.appendText("\n"+c.getName());
 

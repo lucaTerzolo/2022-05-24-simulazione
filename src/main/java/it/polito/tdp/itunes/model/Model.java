@@ -80,7 +80,7 @@ public class Model {
 		if(parziale.size()>best.size()) {
 			best=new ArrayList<>(parziale);
 		}
-		if(parziale.size()==canzoniValide.size()) {
+		if(livello==canzoniValide.size()) {
 			return;
 		}
 		
